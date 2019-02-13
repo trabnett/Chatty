@@ -1,6 +1,8 @@
 var webpack = require('webpack');
 var WebpackDevServer = require('webpack-dev-server');
 var config = require('./webpack.config');
+var sass = require('node-sass');
+
 
 new WebpackDevServer(webpack(config), {
     publicPath: config.output.publicPath,
