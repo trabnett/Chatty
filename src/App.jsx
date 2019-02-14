@@ -2,25 +2,17 @@ import Message from './Message.jsx';
 import MessageList from './MessageList.jsx';
 import ChatBar from './ChatBar.jsx'
 import React, {Component} from 'react';
+const uuidv1 = require('uuid/v1');
 
 class App extends Component {
-  constructor(){
+  constructor() {
     super();
     this.state = {
+      socket: null,
       currentUser: "Anonymous",
-      messages: [
-        {
-          username: "Bob",
-          content: "Has anyone seen my marbles?",
-          id: 1
-        },
-        {
-          username: "Anonymous",
-          content: "No, I think you lost them. You lost your marbles Bob. You lost them for good.",
-          id: 2
-        }
-      ]
+      messages: []
     };
+
     this.keyPress = this.keyPress.bind(this);
     this.userNameUpdater = this.userNameUpdater.bind(this);
   }
@@ -29,10 +21,8 @@ class App extends Component {
 
   keyPress(e){
       if(e.key === 'Enter'){
-        const id = this.state.messages.length + 2;
-        const upDate = this.state.messages;
-        upDate.push({username: this.state.currentUser, content: e.target.value, id: id})
-        this.setState({messages: upDate})
+        const content = e.target.value
+        this.state.socket.send(JSON.stringify({user: this.state.currentUser, content }))
         e.target.value = ""
       }
   }
@@ -46,24 +36,33 @@ class App extends Component {
   }
 
   componentDidMount() {
-    console.log("componentDidMount <App />");
-    setTimeout(() => {
-      console.log("Simulating incoming message");
-      // Add a new message to the list of messages in the data store
-      const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
-      const messages = this.state.messages.concat(newMessage)
-      // Update the state of the app component.
-      // Calling setState will trigger a call to render() in App and all child components.
-      this.setState({messages: messages})
-  }, 3000);
+    var socket = new WebSocket("ws://localhost:3001");
+    socket.addEventListener('open', function (evt) {
+      this.setState({ socket })
+      this.state.socket.onmessage = evt => {
+      // add the new message to state
+        const newMessage = JSON.parse(evt.data)
+        console.log("newMessage:", newMessage)
+        this.setState({
+        messages : this.state.messages.concat([newMessage])
+      })
+        console.log("state", this.state)
+    };
+
+
+
+    }.bind(this));
+
+
 }
 
 
   render() {
+    console.log(this.state)
     return (
       <div>
         <main className="messages">
-          <MessageList messages={this.state.messages} currentUser={this.state.currentUser.name}/>
+          <MessageList messages={this.state.messages} currentUser={this.state.currentUser}/>
           <Message />
         </main>
         <ChatBar keyPress={this.keyPress} userNameUpdater={this.userNameUpdater}/>
