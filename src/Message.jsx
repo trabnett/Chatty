@@ -5,20 +5,17 @@ class Message extends Component {
 
   messageBuilder(message) {
     if (message.type === 'postMessage') {
-      console.log('here')
-      console.log('message in Message builder incomming', message.type)
       return (
-        <div key={message.id} className="message">
-            <span className="message-username">{message.user}</span>
-            <span className="message-content">{message.content}</span>
+        <div key={message.content.id} className="message" style={{color: message.content.color}}>
+            <span className="message-username">{message.content.user}</span>
+            <span className="message-content">{message.content.content}</span>
         </div>
       );
     }
     else if (message.type === "incomingMessage") {
-      console.log('there')
       return (
-        <div key={message.id} className="notification">
-          <span className="notification-content">{message.previousUser} has changed their name to {message.user}</span>
+        <div key={message.content.id} className="notification">
+          <span className="notification-content">{message.content.previousUser} has changed their name to {message.content.user}</span>
         </div>
       )
     } else {
@@ -27,7 +24,6 @@ class Message extends Component {
   }
 
   render() {
-    console.log("in render")
     return this.messageBuilder(this.props.message)
   }
 }

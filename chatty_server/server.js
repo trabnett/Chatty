@@ -26,16 +26,18 @@ let users = 0
     });
   };
 wss.on('connection', function connection(ws) {
-  console.log("connection")
+
   users += 1
-  const startObj = {totalUsers: users}
-  console.log(startObj)
+  const color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
+  const startObj = { type: "userConnected", content: {totalUsers: users, color}}
   wss.broadcast(JSON.stringify(startObj))
+
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
     const obj = JSON.parse(message)
-    obj.id = uuidv1()
+    obj.content.id = uuidv1()
+    obj.content.totalUsers = users
     wss.broadcast(JSON.stringify(obj))
 });
 
@@ -43,5 +45,10 @@ wss.on('connection', function connection(ws) {
 
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
-  ws.on('close', () => );
+  ws.on('close', () => {
+    users -= 1
+    closingObj = {type: "userDisconnected", content: {totalUsers: users}}
+    console.log(closingObj)
+    wss.broadcast(JSON.stringify(closingObj))
+  });
 });

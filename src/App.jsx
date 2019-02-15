@@ -13,7 +13,8 @@ class App extends Component {
       currentUser: "Anonymous",
       previousUser: "Anonymous",
       totalUsers: 1,
-      messages: [{type:null,user:null,content:null,id:null,totalUsers:null},]
+      color: null,
+      messages: [{type:null,content:{user:null,content:null,id:null,totalUsers:null}}]
     };
 
     this.keyPress = this.keyPress.bind(this);
@@ -24,20 +25,18 @@ class App extends Component {
 
   keyPress(e){
       if(e.key === 'Enter'){
-        console.log("what?", this.state.socket)
+        console.log("what?", this.state)
         const content = e.target.value
-        this.state.socket.send(JSON.stringify({type: "postMessage", user: this.state.currentUser, content }))
+        this.state.socket.send(JSON.stringify({type: "postMessage", content: {user: this.state.currentUser, content, color: this.state.color}}))
         e.target.value = ""
       }
   }
 
   userNameUpdater(e){
-    console.log('nameUpdater')
     if(e.key === 'Enter' && e.target.value !== "") {
 
       // this.setState({currentUser: e.target.value})
-      this.state.socket.send(JSON.stringify({type: "incomingMessage", user: e.target.value, previousUser: this.state.currentUser}))
-      console.log("users Switch =====", this.state.currentUser, this.state.previousUser, "and this is e.target.value==", e.target.value)
+      this.state.socket.send(JSON.stringify({type: "incomingMessage", content:{user: e.target.value, previousUser: this.state.currentUser, color: this.state.color}}))
       this.setState({previousUser: this.state.currentUser,
         currentUser: e.target.value              
         })
@@ -46,18 +45,26 @@ class App extends Component {
     } 
 
   componentDidMount() {
-    console.log('here?')
     var socket = new WebSocket("ws://localhost:3001");
     socket.addEventListener('open', function (evt) {
       this.setState({socket : socket})
       this.state.socket.onmessage = evt => {
         const newMessage = JSON.parse(evt.data)
-        console.log(newMessage)
+          this.setState({messages: this.state.messages.concat([newMessage])})
         console.log("message commin in!", newMessage)
-        this.setState({
-          messages : this.state.messages.concat([newMessage]),
-          totalUsers : newMessage.totalUsers
-        })
+
+        if (newMessage.type === "userConnected") {
+          if (!this.state.color) {
+            this.setState({color: newMessage.content.color})
+          }
+          this.setState({totalUsers: newMessage.content.totalUsers})
+        }else if (newMessage.type === "postMessage" || newMessage.type === "incomingMessage") {
+          this.setState({
+            totalUsers : newMessage.content.totalUsers,
+          })
+        }else if (newMessage.type === "userDisconnected") {
+          this.setState({totalUsers: newMessage.content.totalUsers})
+        }
       };
     }.bind(this));
   }
@@ -69,7 +76,7 @@ class App extends Component {
       <div>
         <NavBar totalUsers={this.state.totalUsers}/>
         <main className="messages">
-          <MessageList messages={this.state.messages} currentUser={this.state.currentUser} previousUser={this.state.previousUser}/>
+          <MessageList messages={this.state.messages} currentUser={this.state.currentUser} previousUser={this.state.previousUser} color={this.state.color}/>
         </main>
         <ChatBar keyPress={this.keyPress} userNameUpdater={this.userNameUpdater}/>
       </div>
