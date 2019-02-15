@@ -14,7 +14,7 @@ const server = express()
 
 // Create the WebSockets server
 const wss = new SocketServer({ server });
-let users = 0
+let users = 0;
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
@@ -27,17 +27,17 @@ let users = 0
   };
 wss.on('connection', function connection(ws) {
 
-  users += 1
-  const color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6)
-  const startObj = { type: "userConnected", content: {totalUsers: users, color}}
+  users += 1;
+  const color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+  const startObj = { type: "userConnected", content: {totalUsers: users, color, id: uuidv1()}};
   wss.broadcast(JSON.stringify(startObj))
 
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
-    const obj = JSON.parse(message)
-    obj.content.id = uuidv1()
-    obj.content.totalUsers = users
+    const obj = JSON.parse(message);
+    obj.content.id = uuidv1();
+    obj.content.totalUsers = users;
     wss.broadcast(JSON.stringify(obj))
 });
 
@@ -46,9 +46,9 @@ wss.on('connection', function connection(ws) {
 
   // Set up a callback for when a client closes the socket. This usually means they closed their browser.
   ws.on('close', () => {
-    users -= 1
-    closingObj = {type: "userDisconnected", content: {totalUsers: users}}
-    console.log(closingObj)
+    users -= 1;
+    closingObj = {type: "userDisconnected", content: {totalUsers: users, id: uuidv1()}};
+    console.log(closingObj);
     wss.broadcast(JSON.stringify(closingObj))
   });
 });

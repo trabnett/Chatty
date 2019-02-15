@@ -8,7 +8,7 @@ class MessageList extends Component {
   render() {
     return(
       <div>{this.props.messages.map((message) => (
-        <Message message={message} currentUser={this.props.currentUser} previousUser={this.props.previousUser} color={this.props.color}/>
+        <Message key={message.content.id} message={message} currentUser={this.props.currentUser} previousUser={this.props.previousUser} color={this.props.color}/>
       ))}</div>
     );
   }
