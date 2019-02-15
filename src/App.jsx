@@ -1,6 +1,7 @@
-import Message from './Message.jsx';
+
 import MessageList from './MessageList.jsx';
 import ChatBar from './ChatBar.jsx'
+import NavBar from './NavBar.jsx'
 import React, {Component} from 'react';
 const uuidv1 = require('uuid/v1');
 
@@ -10,7 +11,9 @@ class App extends Component {
     this.state = {
       socket: null,
       currentUser: "Anonymous",
-      messages: []
+      previousUser: "Anonymous",
+      totalUsers: 1,
+      messages: [{type:null,user:null,content:null,id:null,totalUsers:null},]
     };
 
     this.keyPress = this.keyPress.bind(this);
@@ -21,49 +24,52 @@ class App extends Component {
 
   keyPress(e){
       if(e.key === 'Enter'){
+        console.log("what?", this.state.socket)
         const content = e.target.value
-        this.state.socket.send(JSON.stringify({user: this.state.currentUser, content }))
+        this.state.socket.send(JSON.stringify({type: "postMessage", user: this.state.currentUser, content }))
         e.target.value = ""
       }
   }
 
   userNameUpdater(e){
-    if(e.target.value.length === 0) {
-      this.setState({currentUser: ""})
-    } else {
-       this.setState({currentUser: e.target.value})
-    }
-  }
+    console.log('nameUpdater')
+    if(e.key === 'Enter' && e.target.value !== "") {
+
+      // this.setState({currentUser: e.target.value})
+      this.state.socket.send(JSON.stringify({type: "incomingMessage", user: e.target.value, previousUser: this.state.currentUser}))
+      console.log("users Switch =====", this.state.currentUser, this.state.previousUser, "and this is e.target.value==", e.target.value)
+      this.setState({previousUser: this.state.currentUser,
+        currentUser: e.target.value              
+        })
+      }
+  
+    } 
 
   componentDidMount() {
+    console.log('here?')
     var socket = new WebSocket("ws://localhost:3001");
     socket.addEventListener('open', function (evt) {
-      this.setState({ socket })
+      this.setState({socket : socket})
       this.state.socket.onmessage = evt => {
-      // add the new message to state
         const newMessage = JSON.parse(evt.data)
-        console.log("newMessage:", newMessage)
+        console.log(newMessage)
+        console.log("message commin in!", newMessage)
         this.setState({
-        messages : this.state.messages.concat([newMessage])
-      })
-        console.log("state", this.state)
-    };
-
-
-
+          messages : this.state.messages.concat([newMessage]),
+          totalUsers : newMessage.totalUsers
+        })
+      };
     }.bind(this));
-
-
-}
+  }
 
 
   render() {
-    console.log(this.state)
+    console.log(this.state, "<====on app.jsx render")
     return (
       <div>
+        <NavBar totalUsers={this.state.totalUsers}/>
         <main className="messages">
-          <MessageList messages={this.state.messages} currentUser={this.state.currentUser}/>
-          <Message />
+          <MessageList messages={this.state.messages} currentUser={this.state.currentUser} previousUser={this.state.previousUser}/>
         </main>
         <ChatBar keyPress={this.keyPress} userNameUpdater={this.userNameUpdater}/>
       </div>
