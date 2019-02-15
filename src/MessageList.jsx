@@ -4,7 +4,7 @@ import Message from './Message.jsx';
 class MessageList extends Component {
 
 
-
+// Renders each message that is currently stored in state
   render() {
     return(
       <div>{this.props.messages.map((message) => (

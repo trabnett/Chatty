@@ -26,13 +26,13 @@ let users = 0;
     });
   };
 wss.on('connection', function connection(ws) {
-
+// create starting information for a new users, and update existing users of the number of users online
   users += 1;
   const color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
   const startObj = { type: "userConnected", content: {totalUsers: users, color, id: uuidv1()}};
   wss.broadcast(JSON.stringify(startObj))
 
-
+// handle incoming messages, assigns them a unique id and broadcasts them back to all users along with the current number of online users
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
     const obj = JSON.parse(message);
@@ -44,7 +44,7 @@ wss.on('connection', function connection(ws) {
 
 
 
-  // Set up a callback for when a client closes the socket. This usually means they closed their browser.
+  // Set up a callback for when a client closes the socket. This usually means they closed their browser. Updates all current users of the currnet number of online users.
   ws.on('close', () => {
     users -= 1;
     closingObj = {type: "userDisconnected", content: {totalUsers: users, id: uuidv1()}};

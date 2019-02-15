@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 
 class NavBar extends Component {
+
+// displays branding and the currnet number of online users    
 render(){
     return (
         <nav className="navbar">
