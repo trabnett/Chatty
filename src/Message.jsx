@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 
 class Message extends Component {
 
-
+// Function for determining what type of message is being recieved and crafts a template for display
   messageBuilder(message) {
     if (message.type === 'postMessage') {
       return (

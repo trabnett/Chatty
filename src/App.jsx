@@ -22,7 +22,7 @@ class App extends Component {
   }
 
 
-
+// Function for handeling submissions of a new message 
   keyPress(e){
       if(e.key === 'Enter'){
         const content = e.target.value;
@@ -31,6 +31,7 @@ class App extends Component {
       }
   }
 
+  // Function for handeling name updates
   userNameUpdater(e){
     if(e.key === 'Enter' && e.target.value !== "") {
       this.state.socket.send(JSON.stringify({type: "incomingMessage", content:{user: e.target.value, previousUser: this.state.currentUser, color: this.state.color}}));
@@ -40,6 +41,7 @@ class App extends Component {
     }
   } 
 
+  // once all components have mounted, app listens for incoming messages from websocket
   componentDidMount() {
     var socket = new WebSocket("ws://localhost:3001");
     socket.addEventListener('open', function (evt) {
